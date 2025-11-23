@@ -1,6 +1,8 @@
 \version "2.24.0"
 \header {
   title = "<TITLE>"
+    tagline = ##f
+    copyright = "Have fun :)"
 }
 
 \markup \vspace #1
@@ -14,6 +16,11 @@
     \DrumStaff
     \omit Clef
   }
+}
+
+\paper {
+  system-system-spacing = #'((basic-distance . 15) (minimum-distance . 10))
+  print-footer = ##f
 }
 
 \score {

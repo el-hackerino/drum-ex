@@ -10,13 +10,13 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Main {
-    static String inputFilePath = "template.ly";
-    static String combosFilePath = "combos.txt";
+public class DrumExGen {
+    static String templateFilePath = "template.ly";
+    static String samplesFilePath = "samples.txt";
     static String PH_TITLE = "<TITLE>";
     static String PH_NOTES = "<NOTES>";
     static String PH_BARS = "<BARS>";
-    static String TITLE = "Generated exercise 1";
+    static String TITLE = "Random exercise 1";
     static final int numberOfBars = 30;
     static String outputFilePath = "output.ly";
 
@@ -34,35 +34,54 @@ public class Main {
     }
 
     private static List<String> readCombos() {
-        InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(combosFilePath);
+        InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(samplesFilePath);
         assert inputStream != null;
         return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines().filter(l -> !l.isBlank()).toList();
     }
 
     private static String readTemplate() {
-        InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(inputFilePath);
+        InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(templateFilePath);
         assert inputStream != null;
         return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));
     }
 
-    private static StringBuilder buildNotePart(List<String> combos) {
+    private static StringBuilder buildNotePart(List<String> samples) {
         StringBuilder notes = new StringBuilder();
-        for (int i = 0; i < numberOfBars / 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < 4; k++) {
-                    int sampleNr = (int) (Math.random() * combos.size());
-                    notes.append(combos.get(sampleNr)).append(" ");
+        for (int lineNr = 0; lineNr < numberOfBars / 3; lineNr++) {
+            for (int barNr = 0; barNr < 3; barNr++) {
+                for (int quarterNr = 0; quarterNr < 4; quarterNr++) {
+                    int sampleNr = findSample(samples, quarterNr);
+                    notes.append(samples.get(sampleNr)).append(" ");
                 }
                 notes.append("| ");
             }
             notes.append("\n          \\break");
-            if (i < numberOfBars / 3 - 1) {
+            if (lineNr < numberOfBars / 3 - 1) {
                 notes.append("\n          ");
             }
         }
         return notes;
+    }
+
+    private static int findSample(List<String> combos, int k) {
+        int sampleNr;
+        String sample;
+        boolean startsWithSnare;
+        boolean startsWithBass;
+        boolean startsWithPause;
+        do {
+            sampleNr = (int) (Math.random() * combos.size());
+            sample = combos.get(sampleNr);
+            startsWithSnare = sample.startsWith("sn");
+            startsWithBass = sample.startsWith("bd");
+            startsWithPause = sample.startsWith("r");
+        } while (!((k == 0 && startsWithBass)
+                || (k % 2 == 1 && startsWithSnare)
+                || (k == 2 && (startsWithBass || startsWithPause))));
+        IO.println(k + ":" + sample);
+        return sampleNr;
     }
 }
