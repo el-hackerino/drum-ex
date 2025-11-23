@@ -43,7 +43,7 @@
         \override Stem.extra-offset = #'(0 . 1)
         \override Beam.extra-offset = #'(0 . 1)
         \drummode {
-		  \repeat unfold <BARS> { \repeat unfold 16 { hh16 } }
+		  \repeat unfold <NR_OF_BARS> { \repeat unfold 16 { hh16 } }
         }
       }
     >>

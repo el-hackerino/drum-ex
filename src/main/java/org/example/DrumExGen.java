@@ -15,14 +15,14 @@ public class DrumExGen {
     static String samplesFilePath = "samples.txt";
     static String PH_TITLE = "<TITLE>";
     static String PH_NOTES = "<NOTES>";
-    static String PH_BARS = "<BARS>";
+    static String PH_BARS = "<NR_OF_BARS>";
     static String TITLE = "Random exercise 1";
     static final int numberOfBars = 30;
     static String outputFilePath = "output.ly";
 
     static void main() throws IOException {
-        List<String> combos = readCombos();
-        StringBuilder notes = buildNotePart(combos);
+        List<String> samples = readSamples();
+        StringBuilder notes = buildMelody(samples);
         String content = readTemplate();
 
         content = content.replace(PH_TITLE, TITLE);
@@ -33,7 +33,7 @@ public class DrumExGen {
         IO.println(content);
     }
 
-    private static List<String> readCombos() {
+    private static List<String> readSamples() {
         InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(samplesFilePath);
         assert inputStream != null;
         return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
@@ -48,12 +48,12 @@ public class DrumExGen {
                 .collect(Collectors.joining("\n"));
     }
 
-    private static StringBuilder buildNotePart(List<String> samples) {
+    private static StringBuilder buildMelody(List<String> samples) {
         StringBuilder notes = new StringBuilder();
         for (int lineNr = 0; lineNr < numberOfBars / 3; lineNr++) {
             for (int barNr = 0; barNr < 3; barNr++) {
                 for (int quarterNr = 0; quarterNr < 4; quarterNr++) {
-                    int sampleNr = findSample(samples, quarterNr);
+                    int sampleNr = selectSample(samples, quarterNr);
                     notes.append(samples.get(sampleNr)).append(" ");
                 }
                 notes.append("| ");
@@ -66,7 +66,7 @@ public class DrumExGen {
         return notes;
     }
 
-    private static int findSample(List<String> combos, int k) {
+    private static int selectSample(List<String> combos, int k) {
         int sampleNr;
         String sample;
         boolean startsWithSnare;
