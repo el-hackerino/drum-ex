@@ -1,14 +1,14 @@
-sn4
-sn8[ bd8]
-sn8[ sn8]
-sn8.[ sn16]
-sn8.[ bd16]
-sn8[ sn16 sn16]
-sn16 bd8.
+s---
+s-b-
+s-s-
+s--s
+s--b
+s-ss
+sb--
 
-bd8.[ bd16]
-% bd8[ sn8]
-bd8[ bd8]
-bd4
-r8 bd8
-r16 bd8.
+b--b
+% b-s-
+b-b-
+b---
+--b-
+-b--
