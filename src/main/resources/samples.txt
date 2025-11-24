@@ -7,7 +7,7 @@ sn8[ sn16 sn16]
 sn16 bd8.
 
 bd8.[ bd16]
-bd8[ sn8]
+% bd8[ sn8]
 bd8[ bd8]
 bd4
 r8 bd8

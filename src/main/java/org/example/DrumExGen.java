@@ -37,7 +37,7 @@ public class DrumExGen {
         InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(samplesFilePath);
         assert inputStream != null;
         return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                .lines().filter(l -> !l.isBlank()).toList();
+                .lines().filter(l -> !l.isBlank() && !l.startsWith("%")).toList();
     }
 
     private static String readTemplate() {
@@ -81,7 +81,6 @@ public class DrumExGen {
         } while (!((k == 0 && startsWithBass)
                 || (k % 2 == 1 && startsWithSnare)
                 || (k == 2 && (startsWithBass || startsWithPause))));
-        IO.println(k + ":" + sample);
         return sampleNr;
     }
 }
