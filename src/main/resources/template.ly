@@ -18,16 +18,12 @@
 
 \layout {
   \context {
-    \Score
-    \override Dots.X-extent = ##f
-  }
-  \context {
     \DrumStaff
     \omit Clef
     \numericTimeSignature
     \mergeDifferentlyHeadedOn
     \mergeDifferentlyDottedOn
-    \override BarLine.break-visibility = ##(#t #t #f)
+    \override Dots.X-extent = ##f
     drumStyleTable = #(alist->hash-table my-custom-drums-style)
   }
 }
