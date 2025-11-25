@@ -19,16 +19,14 @@
 \layout {
   \context {
     \Score
-    \omit SystemStartBar
-    proportionalNotationDuration = #(ly:make-moment 1/16)
-    \override SpacingSpanner.strict-note-spacing = ##t
-    \override SpacingSpanner.uniform-stretching = ##t
     \override Dots.X-extent = ##f
   }
   \context {
     \DrumStaff
     \omit Clef
     \numericTimeSignature
+    \mergeDifferentlyHeadedOn
+    \mergeDifferentlyDottedOn
     \override BarLine.break-visibility = ##(#t #t #f)
     drumStyleTable = #(alist->hash-table my-custom-drums-style)
   }
@@ -36,7 +34,6 @@
 
 \paper {
   system-system-spacing = #'((basic-distance . 15) (minimum-distance . 10))
-  print-footer = ##f
 }
 
 % Samples
@@ -48,10 +45,7 @@
     % --- TOP VOICE (Hats + Snares) ---
     \new DrumVoice = "top" {
       \voiceOne
-      \numericTimeSignature
-      \override Beam.positions = #'(5.5 . 5.5)
-      \mergeDifferentlyHeadedOn
-      \mergeDifferentlyDottedOn
+      \override Beam.positions = #'(5.5 . 5.5) % Taller, uniform stems
       \drummode {
         <NOTES_TOP>
       }
@@ -60,9 +54,7 @@
     % --- BOTTOM VOICE (Kicks + Snares) ---
     \new DrumVoice = "bottom" {
       \voiceTwo
-      \override Stem.length-fraction = #1.2
-      \mergeDifferentlyHeadedOn
-      \mergeDifferentlyDottedOn
+      \override Stem.length-fraction = #1.2 % Taller stems
       \drummode {
         <NOTES_BOTTOM>
       }

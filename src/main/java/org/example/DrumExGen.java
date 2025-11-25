@@ -15,24 +15,23 @@ import java.util.stream.Collectors;
 import static java.util.Map.entry;
 
 public class DrumExGen {
-    static String templateFilePath = "template.ly";
-    static String samplesFilePath = "samples.txt";
+    static String TEMPLATE_FILE_NAME = "template.ly";
+    static String SAMPLE_FILE_NAME = "samples.txt";
+    static String OUTPUT_FILE_PATH = "output.ly";
     static String PH_TITLE = "<TITLE>";
     static String PH_SAMPLES = "<SAMPLES>";
     static String SAMPLE_SUFFIX_TOP = "_top";
     static String SAMPLE_SUFFIX_BOTTOM = "_btm";
     static String PH_NOTES_TOP = "<NOTES_TOP>";
     static String PH_NOTES_BOTTOM = "<NOTES_BOTTOM>";
-    static String PH_BARS = "<NR_OF_BARS>";
     static String TITLE = "Random exercise 1";
-    static final int numberOfBars = 30;
-    static String outputFilePath = "output.ly";
+    static final int NUMBER_OF_BARS = 30;
     public static final Map<Character, String> NOTE_ABBREVIATIONS = Map.ofEntries(
             entry('b', "bd"),
             entry('s', "sn"),
             entry('-', "r")
     );
-    static String[] durationMarkers = {"16", "8", "8.", "4"};
+    static String[] DURATION_MARKERS = {"16", "8", "8.", "4"};
 
     static void main() throws IOException {
         List<Sample> samples = readSamples();
@@ -44,23 +43,12 @@ public class DrumExGen {
         content = content.replace(PH_SAMPLES, sampleString);
         content = content.replace(PH_NOTES_TOP, notes.top());
         content = content.replace(PH_NOTES_BOTTOM, notes.bottom());
-        content = content.replace(PH_BARS, numberOfBars + "");
 
-        Files.writeString(Paths.get(outputFilePath), content);
-        IO.println(content);
-    }
-
-    private static String printSamples(List<Sample> samples) {
-        StringBuilder result = new StringBuilder();
-        for (Sample sample : samples) {
-            result.append(sample.name()).append(SAMPLE_SUFFIX_TOP).append(" = \\drummode { ").append(sample.top()).append(" }\n");
-            result.append(sample.name()).append(SAMPLE_SUFFIX_BOTTOM).append(" = \\drummode { ").append(sample.bottom()).append(" }\n");
-        }
-        return result.toString();
+        Files.writeString(Paths.get(OUTPUT_FILE_PATH), content);
     }
 
     private static List<Sample> readSamples() {
-        InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(samplesFilePath);
+        InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(SAMPLE_FILE_NAME);
         assert inputStream != null;
         List<String> sampleCodes = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines().filter(l -> !l.isBlank() && !l.startsWith("%")).toList();
@@ -70,7 +58,9 @@ public class DrumExGen {
             StringBuilder topBuilder = new StringBuilder();
             StringBuilder bottomBuilder = new StringBuilder();
             int noteDuration = 0;
-            char lastNote = '-';
+            char note = '-';
+            boolean wroteFirstNote = false;
+            boolean wroteFirstBracket = false;
             for (int pos = 0; pos < 4; pos++) {
                 char c = sampleCode.charAt(pos);
                 topBuilder.append(c == 's' ? "sn16 " : "hh16 ");
@@ -80,19 +70,31 @@ public class DrumExGen {
                     }
                 } else {
                     if (pos > 0) {
-                        bottomBuilder.append(NOTE_ABBREVIATIONS.get(lastNote));
-                        bottomBuilder.append(durationMarkers[noteDuration]).append(" ");
+                        if (wroteFirstNote) {
+                            bottomBuilder.append("[");
+                            wroteFirstBracket = true;
+                        }
+                        appendNote(bottomBuilder, note, noteDuration);
+                        if (note != '-') {
+                            wroteFirstNote = true;
+                        }
                     }
-                    lastNote = c;
+                    note = c;
                     noteDuration = 0;
                 }
                 if (pos == 3) {
-                    bottomBuilder.append(NOTE_ABBREVIATIONS.get(lastNote));
-                    bottomBuilder.append(durationMarkers[noteDuration]).append(" ");
+                    if (wroteFirstNote && !wroteFirstBracket) {
+                        bottomBuilder.append("[");
+                        wroteFirstBracket = true;
+                    }
+                    appendNote(bottomBuilder, note, noteDuration);
+                    if (wroteFirstBracket) {
+                        bottomBuilder.append("] ");
+                    }
                 }
             }
-            char character = (char) ('A' + counter);
-            String sampleName = "c" + character;
+            char sampleNameCharacter = (char) ('A' + counter);
+            String sampleName = "c" + sampleNameCharacter;
             Sample sample = new Sample(topBuilder.toString(), bottomBuilder.toString(), sampleName);
             samples.add(sample);
             counter++;
@@ -100,8 +102,25 @@ public class DrumExGen {
         return samples;
     }
 
+    private static void appendNote(StringBuilder stringBuilder, char lastNote, int noteDuration) {
+        if (!stringBuilder.isEmpty()) {
+            stringBuilder.append(" ");
+        }
+        stringBuilder.append(NOTE_ABBREVIATIONS.get(lastNote));
+        stringBuilder.append(DURATION_MARKERS[noteDuration]);
+    }
+
+    private static String printSamples(List<Sample> samples) {
+        StringBuilder result = new StringBuilder();
+        for (Sample sample : samples) {
+            result.append(sample.name()).append(SAMPLE_SUFFIX_TOP).append(" = \\drummode { ").append(sample.top()).append("}\n");
+            result.append(sample.name()).append(SAMPLE_SUFFIX_BOTTOM).append(" = \\drummode { ").append(sample.bottom()).append(" }\n");
+        }
+        return result.toString();
+    }
+
     private static String readTemplate() {
-        InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(templateFilePath);
+        InputStream inputStream = DrumExGen.class.getClassLoader().getResourceAsStream(TEMPLATE_FILE_NAME);
         assert inputStream != null;
         return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines()
@@ -111,7 +130,7 @@ public class DrumExGen {
     private static Sample printMelody(List<Sample> samples) {
         StringBuilder notesTop = new StringBuilder();
         StringBuilder notesBottom = new StringBuilder();
-        for (int lineNr = 0; lineNr < numberOfBars / 3; lineNr++) {
+        for (int lineNr = 0; lineNr < NUMBER_OF_BARS / 3; lineNr++) {
             for (int barNr = 0; barNr < 3; barNr++) {
                 for (int quarterNr = 0; quarterNr < 4; quarterNr++) {
                     Sample sample = selectSample(samples, quarterNr);
@@ -123,7 +142,7 @@ public class DrumExGen {
             }
             notesTop.append("\n        \\break");
             notesBottom.append("\n        \\break");
-            if (lineNr < numberOfBars / 3 - 1) {
+            if (lineNr < NUMBER_OF_BARS / 3 - 1) {
                 notesTop.append("\n        ");
                 notesBottom.append("\n        ");
             }
@@ -131,7 +150,7 @@ public class DrumExGen {
         return new Sample(notesTop.toString(), notesBottom.toString(), "(Melody)");
     }
 
-    private static Sample selectSample(List<Sample> samples, int k) {
+    private static Sample selectSample(List<Sample> samples, int quarterNr) {
         int sampleNr;
         Sample sample;
         boolean startsWithSnare;
@@ -143,9 +162,9 @@ public class DrumExGen {
             startsWithSnare = sample.bottom().startsWith("sn");
             startsWithBass = sample.bottom().startsWith("bd");
             startsWithPause = sample.bottom().startsWith("r");
-        } while (!((k == 0 && startsWithBass)
-                || (k % 2 == 1 && startsWithSnare)
-                || (k == 2 && (startsWithBass || startsWithPause))));
+        } while (!((quarterNr == 0 && startsWithBass)
+                || (quarterNr % 2 == 1 && startsWithSnare)
+                || (quarterNr == 2 && (startsWithBass || startsWithPause))));
         return sample;
     }
 }
